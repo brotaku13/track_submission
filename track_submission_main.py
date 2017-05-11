@@ -7,6 +7,13 @@ import matplotlib.dates as dates
 import time
 
 def login():
+    """
+    creates a reddit instance, information is private and user specific. to set up your own bot, go through the steps on reddit
+    :return: a reddit instance, titled 'r'
+    """
+
+
+
     print('logging in...')
     r = praw.Reddit(client_id=config.client_id,
                     client_secret=config.client_secret,
@@ -17,13 +24,24 @@ def login():
     return r
 
 def log_submission_timestamps(r, submission_id):
+    """
+    this function tracks the submission timestamps and creates a dictionary of timestamps based on comment IDs
+    :param r: reddit instnace
+    :param submission_id: specific post in reddit
+    :return: a dictionary of timestamps based on user ID
+    """
+
+
     timestamps = {}
 
     post = r.submission(id=submission_id)
     post_created = datetime.fromtimestamp(post.created_utc)
 
     print('getting comments for {}, num comments: {}, date created {}'.format(post.title, post.num_comments, post_created))
+    # this replaces the "replace_more" comment objects in a post, revealing every comment instead of just the top level ones
     post.comments.replace_more(limit=None)
+
+    # this is the part that connects each comment to a timestamp
     for comment in post.comments.list():
         timestamps[comment.id] = comment.created_utc
 
@@ -31,9 +49,20 @@ def log_submission_timestamps(r, submission_id):
     return timestamps
 
 def display_graph_by_minute(r, timestamp_dict, submission_id):
+    """
+    Displays a line graph of post comments volume over an hour
+    :param r: reddit instance
+    :param timestamp_dict: the dictionary created by calling log_submission_timestamp on a post
+    :param submission_id: the submission ID
+    :return: void
+    """
+
+
+
     post = r.submission(id=submission_id)
     post_created = datetime.fromtimestamp(post.created_utc)
     datetime_list = []
+
     for value in timestamp_dict.values():
         datetime_list.append(datetime.fromtimestamp(value))  # fills a list with datetime timestamps
 
@@ -58,7 +87,16 @@ def display_graph_by_minute(r, timestamp_dict, submission_id):
     plt.plot(xaxis_timestamps, yaxis_num_comments)
     plt.show()
 
+
+
 def display_graph_by_hour(r, time_dict, submission_id):
+    """
+    Displays a line graph of post comments volume over time (by hour/ day)
+    :param r: reddit instance
+    :param time_dict: the dictionary created by calling log_submission_timestamp on a post
+    :param submission_id: the submission ID
+    :return: void
+    """
     post = r.submission(id=submission_id)
     datetime_list = []
     for value in time_dict.values():
